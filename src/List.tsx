@@ -1,33 +1,42 @@
-import { CircularProgress, Paper, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
+import { Paper, Skeleton, Table, TableBody, TableCell, TableHead, TableRow, Typography } from "@mui/material";
 
-type ListProps<T> = {
-  arr: T[]
-  keys: string[]
+export class TableData<T extends object, U extends object> {
+  constructor(
+    readonly data: T[] = [],
+    readonly actions: U[] = []
+  ) { }
+}
+
+type ListProps<T extends object, U extends object> = {
+  tableData: TableData<T, U>
   loading: boolean
   tableHeaders: string[]
   requestWasMade: boolean
   notFoundMsg: string
 }
 
-export function List<T>({
+export function List<T extends object, U extends object>({
   loading,
-  arr,
+  tableData,
   requestWasMade,
   tableHeaders,
-  keys,
   notFoundMsg
-}: ListProps<T>) {
+}: ListProps<T, U>) {
   return (
     <>
       {loading ? (
-        <CircularProgress />
+        <Skeleton
+          variant="rounded"
+          height={500}
+          width='100%'
+        />
       ) : (
         <>
-          {(arr.length <= 0 && requestWasMade) && (
+          {(tableData.data.length <= 0 && requestWasMade) && (
             <Typography>{notFoundMsg}</Typography>
           )}
 
-          {arr.length > 0 && (
+          {tableData.data.length > 0 && (
             <Table component={Paper}>
               <TableHead>
                 <TableRow>
@@ -43,11 +52,16 @@ export function List<T>({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {arr.map((obj, idx) =>
+                {tableData.data.map((obj, idx) =>
                   <TableRow key={idx}>
-                    {keys.map(key =>
+                    {Object.keys(obj).map(key =>
                       <TableCell align='center' key={key}>
-                        {Object.getOwnPropertyDescriptor(obj, key)?.value}
+                        {Object.getOwnPropertyDescriptor(obj, key)?.value || 'Dado não encontrado'}
+                      </TableCell>
+                    )}
+                    {Object.keys(tableData.actions[idx]).map(key =>
+                      <TableCell align='center' key={key}>
+                        {Object.getOwnPropertyDescriptor(tableData.actions[idx], key)?.value || 'Dado não encontrado'}
                       </TableCell>
                     )}
                   </TableRow>

@@ -1,20 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Box, Button, IconButton } from "@mui/material";
 import { useState } from "react";
-import { List } from "./List";
+import { List, TableData } from "./List";
 import ShowIcon from '@mui/icons-material/AutoAwesome';
 
 type User = {
+  age: number
   id: number
   name: string
   gender: string
-  age: number
+}
+
+type Action = {
   showAlert: JSX.Element
 }
 
 export function Home() {
-  
-  const [users, setUsers] = useState<User[]>([])
+
+  const [tableData, setTableData] = useState<TableData<User, Action>>(new TableData())
 
   const [requestWasMade, setRequestWasMade] = useState(false)
 
@@ -33,22 +36,32 @@ export function Home() {
       const { users } = await res.json()
 
       if (randomBoolean()) {
-        setUsers([])
+        setTableData(new TableData())
         return
-      } 
-      
-      setUsers(users.map((user: any) => {
-        return { 
-          name: `${user.firstName} ${user.lastName}`,
-          age: user.age,
-          gender: user.gender,
+      }
+
+      const data: User[] = users.map((user: any) => {
+        return {
           id: user.id,
-          showAlert: 
-            <IconButton onClick={() => alert('Showing alert!')}>
+          name: `${user.firstName} ${user.lastName}`,
+          gender: user.gender,
+          age: user.age,
+        }
+      })
+
+      const actions: Action[] = data.map(user => {
+        return {
+          showAlert:
+            <IconButton onClick={() => alert(`User name: ${user.name}`)}>
               <ShowIcon />
             </IconButton>
-        } as User
-      }))
+        }
+      })
+
+      setTableData({
+        data,
+        actions
+      })
 
       setRequestWasMade(true)
     } catch (error) {
@@ -65,8 +78,7 @@ export function Home() {
       <Button variant='contained' onClick={getUsers}>Fetch users</Button>
 
       <List
-        arr={users}
-        keys={['id', 'name', 'gender', 'age', 'showAlert']}
+        tableData={tableData}
         loading={loading}
         notFoundMsg="No users found ☹️"
         tableHeaders={tableHeaders}
